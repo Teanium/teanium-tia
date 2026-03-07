@@ -167,8 +167,7 @@ export default async function handler(request) {
   if (!claudeRes.ok) {
     const errText = await claudeRes.text();
     console.error('Claude API error:', claudeRes.status, errText);
-    // Включаем статус Anthropic в ответ — помогает диагностировать без доступа к логам
-    return new Response(JSON.stringify({ error: 'AI service error', upstream: claudeRes.status }), {
+    return new Response(JSON.stringify({ error: 'AI service error', upstream: claudeRes.status, detail: errText }), {
       status: 502,
       headers: { 'Content-Type': 'application/json', ...corsHeaders(request) },
     });
