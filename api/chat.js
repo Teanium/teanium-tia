@@ -148,10 +148,9 @@ export default async function handler(request) {
         'Content-Type': 'application/json',
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
-        'anthropic-beta': 'messages-2023-12-15',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-5-20250514',
         max_tokens: 1024,
         system: systemPrompt,
         messages: sanitizedMessages,
@@ -168,7 +167,8 @@ export default async function handler(request) {
   if (!claudeRes.ok) {
     const errText = await claudeRes.text();
     console.error('Claude API error:', claudeRes.status, errText);
-    return new Response(JSON.stringify({ error: 'AI service error' }), {
+    // Включаем статус Anthropic в ответ — помогает диагностировать без доступа к логам
+    return new Response(JSON.stringify({ error: 'AI service error', upstream: claudeRes.status }), {
       status: 502,
       headers: { 'Content-Type': 'application/json', ...corsHeaders(request) },
     });
