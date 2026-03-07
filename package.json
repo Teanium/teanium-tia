@@ -1,0 +1,15 @@
+{
+  "name": "teanium-tia",
+  "version": "1.0.0",
+  "description": "TIA — Teanium Intelligent Assistant",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel deploy --prod"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0"
+  },
+  "devDependencies": {
+    "vercel": "^39.0.0"
+  }
+}
