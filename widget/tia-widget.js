@@ -451,11 +451,14 @@
 /* Mobile */
 @media (max-width: 480px) {
   #tia-panel {
-    width: 100vw;
-    height: 100dvh;
-    max-height: 100dvh;
-    bottom: 0;
+    /* JS перезапишет top/left/width/height через visualViewport API */
+    top: 0;
+    left: 0;
     right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    max-height: none;
     border-radius: 0;
     border: none;
   }
@@ -622,6 +625,79 @@
     } catch {}
   }
 
+  // ── visualViewport / keyboard handler (mobile only) ─────────────────────────
+
+  function isMobileLayout() {
+    return window.innerWidth <= 480;
+  }
+
+  function updatePanelGeometry() {
+    if (!$panel || !isOpen) return;
+
+    if (!isMobileLayout()) {
+      // Сброс инлайн-стилей при повороте на десктоп
+      $panel.style.top    = '';
+      $panel.style.left   = '';
+      $panel.style.right  = '';
+      $panel.style.bottom = '';
+      $panel.style.width  = '';
+      $panel.style.height = '';
+      return;
+    }
+
+    var vv = window.visualViewport;
+    if (vv) {
+      // visualViewport.offsetTop — смещение видимой области внутри layout viewport.
+      // Именно это нужно для position:fixed, чтобы «прилипнуть» к реальному экрану
+      // поверх открытой клавиатуры.
+      $panel.style.top    = vv.offsetTop  + 'px';
+      $panel.style.left   = vv.offsetLeft + 'px';
+      $panel.style.width  = vv.width      + 'px';
+      $panel.style.height = vv.height     + 'px';
+      $panel.style.bottom = 'auto';
+      $panel.style.right  = 'auto';
+    } else {
+      // Fallback: window.innerHeight обновляется на Android Chrome без visualViewport
+      $panel.style.top    = '0px';
+      $panel.style.left   = '0px';
+      $panel.style.width  = window.innerWidth  + 'px';
+      $panel.style.height = window.innerHeight + 'px';
+      $panel.style.bottom = 'auto';
+      $panel.style.right  = 'auto';
+    }
+
+    scrollToBottom();
+  }
+
+  function setupViewportHandler() {
+    if (!isMobileLayout()) return;
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', updatePanelGeometry);
+      window.visualViewport.addEventListener('scroll', updatePanelGeometry);
+    } else {
+      window.addEventListener('resize', updatePanelGeometry);
+    }
+    updatePanelGeometry(); // начальный замер
+  }
+
+  function teardownViewportHandler() {
+    if (window.visualViewport) {
+      window.visualViewport.removeEventListener('resize', updatePanelGeometry);
+      window.visualViewport.removeEventListener('scroll', updatePanelGeometry);
+    } else {
+      window.removeEventListener('resize', updatePanelGeometry);
+    }
+    // Сброс инлайн-стилей — CSS снова управляет позицией
+    if ($panel) {
+      $panel.style.top    = '';
+      $panel.style.left   = '';
+      $panel.style.right  = '';
+      $panel.style.bottom = '';
+      $panel.style.width  = '';
+      $panel.style.height = '';
+    }
+  }
+
   // ── Panel open/close ─────────────────────────────────────────────────────────
   function togglePanel() {
     isOpen ? closePanel() : openPanel();
@@ -630,6 +706,7 @@
   function openPanel() {
     isOpen = true;
     $panel.classList.add('tia-open');
+    setupViewportHandler();
     setTimeout(function () { $textarea.focus(); }, 320);
     scrollToBottom();
   }
@@ -637,6 +714,7 @@
   function closePanel() {
     isOpen = false;
     $panel.classList.remove('tia-open');
+    teardownViewportHandler();
   }
 
   function hideWelcome() {
