@@ -80,7 +80,7 @@
   right: 24px;
   width: 52px;
   height: 52px;
-  border-radius: 50%;
+  border-radius: 16px;
   background: #2C1810;
   box-shadow: 0 4px 16px rgba(44,24,16,0.25), 0 1px 4px rgba(44,24,16,0.15);
   border: none;
